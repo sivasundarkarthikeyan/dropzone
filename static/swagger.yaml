@@ -1,0 +1,387 @@
+---
+openapi: 3.0.0
+info:
+  title: Data Dropzone Challenge
+  description: This is the API documentation for the production server of Dropzone.
+  contact:
+    email: sivasundarkarthikeyan12@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+# Added by API Auto Mocking Plugin
+- url: /
+  description: Data Dropzone Challenge - Swagger UI
+- url: https://virtserver.swaggerhub.com/sivasundarkarthikeyan/Almost_Completed/1.0.0
+  description: SwaggerHub API Auto Mocking
+security:
+- basicAuth: []
+paths:
+  /store:
+    post:
+      tags:
+      - store
+      summary: Add one or more records to Datastore
+      operationId: storeData
+      requestBody:
+        description: Object that needs to be added to the Datastore
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Original'
+        required: true
+      responses:
+        "200":
+          description: Data has been transformed and stored in Datastore successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Derived'
+        "204":
+          description: Data Transformation failed and data is not stored in Datastore
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+  /fetchAll:
+    get:
+      tags:
+      - fetchAll
+      summary: Fetches N records from the Datastore
+      description: Fetches a maximum of N records from the Datastore where N being the {limit} received on request
+      operationId: returnAll
+      parameters:
+      - name: limit
+        in: query
+        description: Number of records to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Integer'
+      - name: original
+        in: query
+        description: Flag to notify the back-end whether or not to retrieve the original data along with the derived data. Original data is not retrieved by default.
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Boolean'
+      responses:
+        "200":
+          description: Retrieved atleast one and at most N records from datastore successfully either with or without original data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - $ref: '#/components/schemas/Derived'
+                  - $ref: '#/components/schemas/Original'
+        "204":
+          description: Returns empty list when there are no records in Datastore
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+  /fetchKeys:
+    get:
+      tags:
+      - fetchKeys
+      summary: Fetches N _id/name from the Datastore
+      description: Fetches a maximum of N _id/name from the Datastore where N being the {limit} received on request
+      operationId: returnKeys
+      parameters:
+      - name: limit
+        in: query
+        description: number of _id/name to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          $ref: '#/components/schemas/Integer'
+      responses:
+        "200":
+          description: Retrieved atleast one and at most N _id/name from datastore successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Id'
+        "204":
+          description: Returns empty list when there are no records in Datastore
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+  /fetchMany:
+    get:
+      tags:
+      - fetchMany
+      summary: Fetches records that matches given _id/name from the Datastore
+      description: Fetches records of all given _id/name if they match the keys in Datastore, where id/name being the {_id} received on request
+      operationId: returnMany
+      parameters:
+      - name: _id
+        in: query
+        description: _ids of records to return
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Id'
+      - name: original
+        in: query
+        description: Flag to notify the back-end whether or not to retrieve the original data along with the derived data. Original data is not retrieved by default.
+        required: false
+        style: form
+        explode: true
+        schema:
+          $ref: '#/components/schemas/Boolean'
+      responses:
+        "200":
+          description: Retrieved atleast one and at most all records where id/name matched
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - $ref: '#/components/schemas/Derived'
+                  - $ref: '#/components/schemas/Original'
+        "204":
+          description: No record was available in Datastore for all given _id/name to return
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+  /filter:
+    post:
+      tags:
+      - filter
+      summary: Filter Datastore based on fields
+      description: Data retrieval with filter options which allows to filter the data using one of the fields with its respective value and an appropriate conditional operatorz
+      operationId: filterMany
+      requestBody:
+        description: List of fields, values and conditions for filtering
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                field:
+                  $ref: '#/components/schemas/Fields'
+                operator:
+                  $ref: '#/components/schemas/Operators'
+                value:
+                  $ref: '#/components/schemas/Values'
+        required: true
+      responses:
+        "200":
+          description: Retrieved at least one record that matches the given filter criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - $ref: '#/components/schemas/Derived'
+                  - $ref: '#/components/schemas/Original'
+        "204":
+          description: No record was available in Datastore that matches the filter criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+  /deleteMany:
+    delete:
+      tags:
+      - deleteMany
+      summary: Delete records that matches given _id/name from the Datastore
+      description: Delete records of all given _id/name if they match the keys in Datastore, where id/name being the {_id} received on request
+      operationId: removeMany
+      parameters:
+      - name: _id
+        in: query
+        description: _ids of records to delete
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Id'
+      responses:
+        "200":
+          description: Deleted atleast one and at most all records where id/name matched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delete'
+        "204":
+          description: No record was available in Datastore for all given _id/name to delete 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/List'
+        "400":
+          description: Error in request parameters
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+        "401":
+          description: Authentication Failure
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/None'
+components:
+  schemas:
+    Derived:
+      type: object
+      properties:
+        _id:
+          $ref: '#/components/schemas/Id'
+        mean:
+          $ref: '#/components/schemas/Double'
+        stdev:
+          $ref: '#/components/schemas/Double'
+        timeUTC:
+          $ref: '#/components/schemas/DateTime'
+    Original:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Data'
+        time_stamp:
+          $ref: '#/components/schemas/DateTime'
+    Data:
+      type: array
+      example:
+      - 5.452230246951301
+      - 4.220180241031342
+      - 3.2202471173442886
+      - 2.26811334095196
+      - 3.2705503319754063
+      - 4.209554012331998
+      items:
+        type: number
+        format: double
+    Boolean:
+      type: boolean
+      example: false
+      default: false
+    List:
+      type: array
+      items:
+        type: string
+        nullable: true
+        example: "null"
+    None:
+      type: string
+      nullable: true
+      example: "null"
+    Id:
+      type: string
+      example: eJQ8hpD2EvpD55fy8U2Jha
+    Double:
+      type: number
+      format: double
+      example: 3.2202471173442886
+    Integer:
+      type: number
+      format: integer
+      example: 6
+    DateTime:
+      type: string
+      pattern: "%Y-%m-%dT%H:%M:%S%z"
+      description: Custom datetime
+      example: "2019-05-04T06:00:00-04:00"
+    Operators:
+      type: string
+      example: ">"
+    Fields:
+      type: string
+      example: "stdev"
+    Values:
+      type: number
+      format: double
+      example: 4.03
+    Delete:
+      type: object
+      properties:
+        deletedRecords:
+          $ref: '#/components/schemas/Integer'
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
